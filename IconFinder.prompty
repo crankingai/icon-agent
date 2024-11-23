@@ -1,0 +1,62 @@
+---
+name: IconFinder
+description: For a technology brand or product name, find the URL to its official logo so it can be downloaded.
+authors:
+  - Bill Wilder, SemanticKernel.dev
+model:
+  api: chat
+  configuration:
+    type: azure_openai
+    azure_deployment: gpt-4o
+    api_key: ${env:AZURE_OPENAI_API_KEY}
+    api_version: ${env:AZURE_OPENAI_API_VERSION}
+    azure_endpoint: ${env:AZURE_OPENAI_ENDPOINT}
+  parameters:
+    max_tokens: 300
+    temperature: 0
+sample:
+  brand: Java
+  # brand: Java Programming Language
+  # brand: Java Programming Language from Oracle
+  # brand: .NET framework from Microsoft
+  # brand: .NET framework
+  # brand: .NET 
+  # brand: Python programming language
+  # brand: Python 
+  # brand: Semantic Kernel AI SDK
+  context: >
+    Many technology brands and products have an official logo. For example,
+    GitHub, the Python programming language, .NET, and Prompty all have official
+    logos. You can find these logos on the official websites of these brands and 
+    sometimes they include guidelines for using the logo in your content.
+  question: Get the official logo URL for {{brand}}.
+---
+
+system:
+You are an AI assistant that finds URLs of the logo for software technology brands. 
+A technology brand might be a company name (like GitHub), a programming 
+language (like Java, C#, or Python), a platform (like Azure or AWS or .NET), 
+or a product (like Visual Studio Code).
+
+As the assistant, you provide the official URL to the logo file in PNG format. You
+provide the URL only, not the image itself. The URL should be the direct link to
+the image file, not a page that contains the image. For example, the URL will usually end
+end with ".png" but could also end in ".jpg" or ".svg" or another image file extension.
+
+Provide as a JSON object that includes only the logo URL exactly as in the following 
+Python example, replacing only the "logo_url" value with the correct URL for the 
+specified technology's official logo:
+
+{
+  "logo_url": "https://www.python.org/static/community_logos/python-logo-master-v3-TM.png"
+}
+
+# Content Creator
+You are helping to find a logo for brand {{brand}}.
+
+# Context
+Use the following context to provide a more accurate response:
+{{context}}
+
+user:
+{{question}}
