@@ -36,6 +36,7 @@ string brand = string.Join(" ", args);
 Console.WriteLine($"Hello, Icon Agent here! Beginning processing for: ❰{brand}❱");
 #endregion
 
+// DEMO: second one used by default, but both are available via serviceId
 var builder = Kernel.CreateBuilder()
     .AddAzureOpenAIChatCompletion(azureOpenAIModelId, azureOpenAIEndpoint, azureOpenAIAPIKey, serviceId: "AzureOpenAI")
     .AddOpenAIChatCompletion(openAIModelId, openAIAPIKey, serviceId: "OpenAI")
@@ -44,62 +45,62 @@ var builder = Kernel.CreateBuilder()
 var resourceBuilder = ResourceBuilder.CreateDefault().AddService("ResponsibleIconUse");
 
 #region OpenTelemetry
+// DEMO: on/off OpenTelemetry SK - includes token counts, function calls, and more
 resourceBuilder = OTelEnabler.EnableOTelSK(resourceBuilder);
 
 AppContext.SetSwitch("Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive", true);
 
 using var loggerFactory = LoggerFactory.Create(builder =>
 {
-    // Add OpenTelemetry as a logging provider
+// DEMO: on/off OpenTelemetry generally
+#if true
     builder.AddOpenTelemetry(options =>
     {
         options.SetResourceBuilder(resourceBuilder);
         options.AddConsoleExporter();
-
-        // Format log messages. This is default to false.
-        // options.IncludeFormattedMessage = true;
-        // options.IncludeScopes = true;
-        // options.IncludeFormattedMessage = false;
-        // options.IncludeScopes = false;
     });
+#endif
+    // DEMO: on/off logging verbosity levels
     // builder.SetMinimumLevel(LogLevel.Information);
-    // builder.SetMinimumLevel(LogLevel.Trace);
-    builder.SetMinimumLevel(LogLevel.Warning);
+    builder.SetMinimumLevel(LogLevel.Trace);
+    // builder.SetMinimumLevel(LogLevel.Warning);
     // builder.SetMinimumLevel(LogLevel.None);
 });
 #endregion
+
 
 Kernel kernel = builder.Build();
 builder.Services.AddSingleton(loggerFactory);
 
 var logger = loggerFactory.CreateLogger<Program>();
-
-//builder.Services.AddLogging(services => services.AddConsole().SetMinimumLevel(LogLevel.Trace));
-
 logger.LogInformation($"✅ Starting the Icon Agent for ❰{brand}❱");
 
 var chat = kernel.GetRequiredService<IChatCompletionService>();
 // Which is chat completion service type (OpenAI or AzureOpenAI)?
 logger.LogWarning($"Chat completion service: {chat.GetType().Name}");
 
+Console.WriteLine($"Chat completion service: {chat.GetType().Name}");
+
 
 var history = new ChatHistory();
 
 #region Basic AI Chat app
-#if true
+#if false
+// DEMO: on/off Basic chat app demo
 
 PromptExecutionSettings promptExecutionSettings = new()
 {
 };
 
-history.AddUserMessage($"Hello, Icon Agent here! Let's talk about an interesting technical detail for: \"{brand}\"");
+history.AddUserMessage($"Hello, Icon Agent here! Here's an interesting technical detail about: \"{brand}\"");
 
 var result = await chat.GetChatMessageContentAsync(
         history,
         executionSettings: promptExecutionSettings,
         kernel: kernel);
 
-logger.LogInformation($"✅ Icon Agent says ❰❰begin❱❱\n{result}\n❰❰end❱❱");
+// logger.LogInformation($"✅ Icon Agent says ❰❰begin❱❱\n{result}\n❰❰end❱❱");
+Console.WriteLine($"✅ Icon Agent says ❰❰begin❱❱\n{result}\n❰❰end❱❱");
 
 history.Clear();
 
@@ -110,6 +111,7 @@ history.Clear();
 
 #region Basic AI Agent
 #if true
+// DEMO: on/off Basic AI Agent demo
 
 #region Functions
 #region Plugins
@@ -119,7 +121,8 @@ var func1 = kernel.CreateFunctionFromPromptyFile("./IconFinder.prompty");
 #pragma warning restore SKEXP0040
 var func2 = kernel.Plugins.AddFromType<ImageUrlValidatorFunction>("url_validator"); // ***
 var func3 = kernel.Plugins.AddFromType<ImageDescriberFunction>("describe_image_at_url"); // ###
-// var func4 = kernel.Plugins.AddFromType<ImageWebSearchFunction>("search_for_image_for_brand"); // ###
+// DEMO: on/off ImageWebSearchFunction
+var func4 = kernel.Plugins.AddFromType<ImageWebSearchFunction>("search_for_brand_logo"); // ###
 #endregion
 #endregion
 
@@ -137,7 +140,7 @@ OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
     FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
 #pragma warning restore SKEXP0001
 
-    MaxTokens = 1500,
+    MaxTokens = 1000,
     // Temperature = 0.70, // higher values make the model more creative
     Temperature = 0.10, // lower values make the model more precise
 };
@@ -152,35 +155,11 @@ var promptTemplate = $"Get a valid URL for the logo of {brand}, " +
         "for the 'title' attribute and " +
         "referencing the brand name in the 'alt' attribute " +
         "saying something like 'XYZ logo'. " +
-        "If you encounter errors along the way, retry up to 10 times.";
-
-// var response = ((await kernel.InvokeAsync(recall_facts, new() { ["input"] = contextFreeQuery })).ToString().Trim());
-
-//var res = await kernel.InvokeAsync(promptTemplate, new() { ["brand"] = brand });
-
-// history.AddMessage("system",  "Hello, Icon Agent here! Let's talk about an interesting technical detail for: \"{brand}\"");
-// history.AddUserMessage(promptTemplate);
-// history.AddUserMessage(new() { ["brand"] = brand });
-
-// var response = await chat.GetChatMessageContentAsync(
-//         history,
-//         executionSettings: openAIPromptExecutionSettings,
-//         kernel: kernel);
-
-
-
-// var response = await kernel.InvokePromptAsync(
-//     promptTemplate,
-//     new() { ["brand"] = brand },
-//     executionSettings: openAIPromptExecutionSettings
-// );
+        "If you encounter errors along the way, retry up to 3 times.";
 
 var response = await kernel.InvokePromptAsync(promptTemplate, new(openAIPromptExecutionSettings));
 
-
-// var response = await kernel.InvokePromptAsync(promptTemplate, new() { ["brand"] = brand }, new(openAIPromptExecutionSettings));
-
-Console.WriteLine(response); // Outputs: Good morning, John Doe!
+Console.WriteLine(response); 
 
 
 // var response = await kernel.InvokePromptAsync(promptTemplate,
@@ -192,75 +171,5 @@ Console.WriteLine(response);
 
 #endif
 #endregion
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#if false
-
-// Add enterprise components
-// builder.Services.AddLogging(services => services.AddConsole().SetMinimumLevel(LogLevel.Trace));
-
-// Build the kernel
-Kernel kernel = builder.Build();
-
-// Add a plugin (the LightsPlugin class is defined below)
-kernel.Plugins.AddFromType<LightsPlugin>("Lights");
-
-// Enable planning
-OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new() 
-{
-    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-};
-
-// Create a history store the conversation
-var history = new ChatHistory();
-
-// Initiate a back-and-forth chat
-string? userInput;
-do {
-    // Collect user input
-    Console.Write("User > ");
-    userInput = Console.ReadLine();
-
-    // Add user input
-    history.AddUserMessage(userInput);
-
-    // Get the response from the AI
-    var result = await chatCompletionService.GetChatMessageContentAsync(
-        history,
-        executionSettings: openAIPromptExecutionSettings,
-        kernel: kernel);
-
-    // Print the results
-    Console.WriteLine("Assistant > " + result);
-
-    // Add the message from the agent to the chat history
-    history.AddMessage(result.Role, result.Content ?? string.Empty);
-} while (userInput is not null);
-#endif
 
 return 0;

@@ -15,8 +15,8 @@ public class ImageWebSearchFunction
     static int tryCount = 0;
 
 
-    [KernelFunction("search_for_image_for_brand")]
-    [Description("Return list of candidates for image search for a brand.")]
+    [KernelFunction("search_for_brand_logo")]
+    [Description("Returns list of search results containing references to brand logs.")]
     public async Task<List<string>> SearchImageAsync(
         Kernel kernel,
         string search_string)
@@ -27,15 +27,12 @@ public class ImageWebSearchFunction
         (bingSearchEndpoint, bingSearchKey) = Config.EnvVarReader.GetBingSearchConfig();
 
         var textSearch = new BingTextSearch(apiKey: bingSearchKey);
-        var query = "What is the Semantic Kernel?";
-        if (!string.IsNullOrWhiteSpace(search_string))
-        {
-            // flip a coin
-            if (new Random().Next(2) == 0)
-                query = $"Link to {search_string} png or jpg image";
-            else
-                query = $"href to {search_string} file";
-        }
+        string query = "";
+        // flip a coin
+        if (new Random().Next(2) == 0)
+            query = $"Link to {search_string} png or jpg image";
+        else
+            query = $"href to {search_string} file";
 
 #pragma warning disable SKEXP0001 // 'KernelSearchResults<string>' is for evaluation purposes only and is subject to change or removal in future updates.
         KernelSearchResults<string> searchResults = await textSearch.SearchAsync(query, new() { Top = 4 });

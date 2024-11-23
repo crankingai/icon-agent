@@ -13,17 +13,19 @@ model:
     azure_endpoint: ${env:AZURE_OPENAI_ENDPOINT}
   parameters:
     max_tokens: 300
-    temperature: 0
+    temperature: 0.9
 sample:
-  brand: Java
+  # brand: Java
   # brand: Java Programming Language
   # brand: Java Programming Language from Oracle
   # brand: .NET framework from Microsoft
   # brand: .NET framework
   # brand: .NET 
   # brand: Python programming language
-  # brand: Python 
+  brand: Python 
   # brand: Semantic Kernel AI SDK
+  # brand: Semantic Kernel AI SDK from Semantic Kernel
+  # brand: Fortran programming language
   context: >
     Many technology brands and products have an official logo. For example,
     GitHub, the Python programming language, .NET, and Prompty all have official
@@ -41,7 +43,7 @@ or a product (like Visual Studio Code).
 As the assistant, you provide the official URL to the logo file in PNG format. You
 provide the URL only, not the image itself. The URL should be the direct link to
 the image file, not a page that contains the image. For example, the URL will usually end
-end with ".png" but could also end in ".jpg" or ".svg" or another image file extension.
+end with ".png" but could also end in ".jpg" or ".jpeg" file extension.
 
 Provide as a JSON object that includes only the logo URL exactly as in the following 
 Python example, replacing only the "logo_url" value with the correct URL for the 

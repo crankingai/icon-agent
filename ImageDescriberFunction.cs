@@ -11,7 +11,7 @@ public class ImageDescriberFunction
    static int describeTryCount = 0;
 
    [KernelFunction("describe_image_at_url")]
-   [Description("Return a concise text description of the image.")]
+   [Description("Returns a concise text description of a logo image.")]
    public async Task<string> DescribeImageAtUrlAsync(
        Kernel kernel,
        string image_url
@@ -27,7 +27,11 @@ public class ImageDescriberFunction
 
       // var builder = Kernel.CreateBuilder();
 
-      var chat = kernel.GetRequiredService<IChatCompletionService>();
+      // DEMO: take default LLM or force selection
+      // var chat = kernel.GetRequiredService<IChatCompletionService>();
+      // var chat = kernel.GetRequiredService<IChatCompletionService>(serviceKey: "OpenAI");
+      var chat = kernel.GetRequiredService<IChatCompletionService>(serviceKey: "AzureOpenAI");
+
 
       var history = new ChatHistory();
 
